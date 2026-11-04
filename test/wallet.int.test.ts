@@ -165,6 +165,95 @@ describe('internal debits', () => {
     })
 })
 
+describe('internal refs', () => {
+    it('needs the service token', async () => {
+        await t
+            .http()
+            .post('/api/v1/internal/refs')
+            .send({
+                refs: [
+                    'pack:payment:1',
+                ],
+            })
+            .expect(401)
+    })
+
+    it('says which refs the ledger has, whatever their prefix, and changes nothing', async () => {
+        const userId = randomUUID()
+        const paymentId = randomUUID()
+        await t.app.get(PaymentsConsumer).handle(paymentEvent(userId, paymentId))
+        const debit = `bet:${randomUUID()}`
+        await internal('debit', {
+            ref: debit,
+            userId,
+            amount: '1',
+            source: 'roulette',
+        }).expect(200)
+        const missing = `pack:payment:${randomUUID()}`
+        const ledgerSize = async () => {
+            const rows = await t.db.execute<{
+                refs: number
+                ops: number
+            }>(
+                sql`select (select count(*)::int from wallet_refs) as refs, (select count(*)::int from wallet_tx) as ops`,
+            )
+            return rows.rows[0]
+        }
+        const before = await ledgerSize()
+
+        const response = await internal('refs', {
+            refs: [
+                `pack:payment:${paymentId}`,
+                missing,
+                debit,
+            ],
+        }).expect(200)
+        expect(response.body.found.sort()).toEqual(
+            [
+                `pack:payment:${paymentId}`,
+                debit,
+            ].sort(),
+        )
+        expect(await ledgerSize()).toEqual(before)
+
+        const none = await internal('refs', {
+            refs: [
+                missing,
+            ],
+        }).expect(200)
+        expect(none.body).toEqual({
+            found: [],
+        })
+    })
+
+    it('takes a bounded list of well-formed refs', async () => {
+        await internal('refs', {
+            refs: [],
+        }).expect(400)
+        await internal('refs', {
+            refs: Array.from(
+                {
+                    length: 1_001,
+                },
+                (_, index) => `pack:payment:${index}`,
+            ),
+        }).expect(400)
+        await internal('refs', {
+            refs: [
+                'not a ref',
+            ],
+        }).expect(400)
+        await internal('refs', {
+            refs: Array.from(
+                {
+                    length: 1_000,
+                },
+                (_, index) => `pack:payment:${index}`,
+            ),
+        }).expect(200)
+    })
+})
+
 describe('operators', () => {
     it('lets wallet.adjust grant and adjust within limits, and refuses support', async () => {
         const userId = await funded('100')

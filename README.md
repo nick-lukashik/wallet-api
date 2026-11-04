@@ -33,6 +33,7 @@ A refusal (402 `INSUFFICIENT_FUNDS`, 423 `LOCKED`) rolls back, so the same ref c
 | `GET /me/wallet`, `GET /me/wallet/history?limit&cursor`                                                | access token    | The caller's balance and operations; no refs, reasons or authors                                   |
 | `POST /internal/debit`, `POST /internal/credit` `{ ref, userId, amount, source, objectRef?, reason? }` | service token   | Stakes, payouts, refunds of other services. The prefixes `grant:`, `adjust:`, `pack:` are reserved |
 | `POST /internal/balances` `{ userIds }`                                                                | service token   | Balances of up to 1000 users                                                                       |
+| `POST /internal/refs` `{ refs }`                                                                       | service token   | Read-only: which of up to 1000 refs the ledger has, `{ found }` (pay-api's reconciliation)         |
 | `GET /admin/wallets/:userId`                                                                           | `wallet.read`   | Wallet and full ledger                                                                             |
 | `POST /admin/wallets/:userId/grant` and `.../adjust` `{ amount, reason, commandId }`                   | `wallet.adjust` | Operator credit or debit with a reason, at most `WALLET_ADMIN_MAX_AMOUNT`; ref `grant:<commandId>` |
 

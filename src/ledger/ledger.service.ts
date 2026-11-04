@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from 'node:crypto'
 import { Inject, Injectable } from '@nestjs/common'
 import { COIN, walletCreditedV1 } from '@nick-lukashik/contracts'
-import { and, eq, sql } from 'drizzle-orm'
+import { and, eq, inArray, sql } from 'drizzle-orm'
 import { DB } from '../common/database/database.js'
 import { AppError } from '../common/http/app-error.js'
 import { defineEvent } from '../common/messaging/event.js'
@@ -59,6 +59,17 @@ export class LedgerService {
 
     post(operation: Operation): Promise<Posted> {
         return this.db.transaction(tx => this.postIn(tx, operation))
+    }
+
+    /** Which of these refs have an operation. */
+    async knownRefs(refs: string[]) {
+        const rows = await this.db
+            .select({
+                ref: walletRefs.ref,
+            })
+            .from(walletRefs)
+            .where(inArray(walletRefs.ref, refs))
+        return rows.map(row => row.ref)
     }
 
     /** The same inside a caller's transaction (the inbox of an event). */

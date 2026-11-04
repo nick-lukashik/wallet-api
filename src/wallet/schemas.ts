@@ -35,6 +35,11 @@ export const balancesSchema = z.object({
 })
 export type BalancesInput = z.infer<typeof balancesSchema>
 
+export const refsSchema = z.object({
+    refs: z.array(ref).min(1).max(1_000),
+})
+export type RefsInput = z.infer<typeof refsSchema>
+
 export const adminCommandSchema = z.object({
     amount: coinAmountSchema,
     reason: z.string().trim().min(3).max(500),
