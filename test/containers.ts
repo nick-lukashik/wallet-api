@@ -56,7 +56,13 @@ export async function withLogs<T>(container: StartedTestContainer, check: () => 
  * instead of the shared ones (also in CI, where the shared ones are service
  * containers). The host port is fixed: Docker keeps it across stop and start.
  */
-export async function startOwnRabbitMq(environment: Record<string, string> = {}) {
+export async function startOwnRabbitMq(
+    environment: Record<string, string> = {},
+    files: {
+        content: string
+        target: string
+    }[] = [],
+) {
     const port = await freePort()
     const container = await new RabbitMQContainer(IMAGES.rabbitmq)
         .withExposedPorts({
@@ -64,6 +70,7 @@ export async function startOwnRabbitMq(environment: Record<string, string> = {})
             host: port,
         })
         .withEnvironment(environment)
+        .withCopyContentToContainer(files)
         .start()
     return {
         container,

@@ -7,10 +7,12 @@ import {
     balancesSchema,
     type InternalOperation,
     internalOperationSchema,
+    type RefsInput,
+    refsSchema,
 } from '../wallet/schemas.js'
 import { WalletService } from '../wallet/wallet.service.js'
 
-/** Other services inside the cluster, with this service's token: stakes, payouts, refunds. */
+/** Other services inside the cluster, with this service's token: stakes, payouts, refunds, what the ledger has. */
 @ApiExcludeController()
 @Controller('internal')
 @Internal()
@@ -62,6 +64,20 @@ export class InternalController {
     ) {
         return {
             items: await this.wallets.balances(body.userIds),
+        }
+    }
+
+    /** Read-only: pay-api's reconciliation asks which payments reached the ledger. */
+    @Post('refs')
+    @HttpCode(HttpStatus.OK)
+    async refs(
+        @Body({
+            schema: refsSchema,
+        })
+        body: RefsInput,
+    ) {
+        return {
+            found: await this.ledger.knownRefs(body.refs),
         }
     }
 }
