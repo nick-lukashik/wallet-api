@@ -1,6 +1,6 @@
 # wallet-api
 
-The GRM wallet of the nick-lukashik platform. GRM ("grumbles") is the one internal unit: whole numbers, no cash-out, no transfers between people. They are bought through pay-api and spent by games through the internal API.
+The coin wallet of the nick-lukashik platform. Coins (unit `COIN`) are the one internal unit: whole numbers, no cash-out, no transfers between people. They are bought through pay-api and spent by games through the internal API.
 
 Built from [`nest-example`](https://github.com/nick-lukashik/nest-example): Postgres, RabbitMQ outbox and inbox. Design: [`.github/docs/identity.md`](https://github.com/nick-lukashik/.github/blob/master/docs/identity.md). The contract is ported from the previous platform's `wallet-backend`. No public route.
 
@@ -38,10 +38,10 @@ A refusal (402 `INSUFFICIENT_FUNDS`, 423 `LOCKED`) rolls back, so the same ref c
 
 ## Events
 
-| Direction                              | Event                      | Effect                                                                         |
-| -------------------------------------- | -------------------------- | ------------------------------------------------------------------------------ |
-| consumed (queue `wallet-api.payments`) | `pay.payment.succeeded.v1` | Credit `grm`, ref `pack:payment:<paymentId>`, second account `issued_purchase` |
-| published                              | `wallet.credit.posted.v1`  | Every credit (notifications-api adds an inbox entry)                           |
+| Direction                              | Event                      | Effect                                                                           |
+| -------------------------------------- | -------------------------- | -------------------------------------------------------------------------------- |
+| consumed (queue `wallet-api.payments`) | `pay.payment.succeeded.v1` | Credit `coins`, ref `pack:payment:<paymentId>`, second account `issued_purchase` |
+| published                              | `wallet.credit.posted.v1`  | Every credit (notifications-api adds an inbox entry)                             |
 
 Not yet:
 - the reconciliation pass (balance drift, chain breaks, zero sum);

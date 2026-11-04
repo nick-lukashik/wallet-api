@@ -17,7 +17,7 @@ afterAll(async () => {
     await identity?.close()
 })
 
-const paymentEvent = (userId: string, paymentId: string, grm = '500') => ({
+const paymentEvent = (userId: string, paymentId: string, coins = '500') => ({
     eventId: randomUUID(),
     type: 'pay.payment.succeeded.v1',
     producer: 'pay',
@@ -26,9 +26,9 @@ const paymentEvent = (userId: string, paymentId: string, grm = '500') => ({
     payload: {
         paymentId,
         userId,
-        productKey: 'grm-500',
-        grm,
-        amount: '449',
+        productKey: 'coins-500',
+        coins,
+        amount: '5',
         currency: 'RUB',
         provider: 'fake',
         paidAt: new Date().toISOString(),
@@ -38,9 +38,9 @@ const paymentEvent = (userId: string, paymentId: string, grm = '500') => ({
 const internal = (path: string, body: Record<string, unknown>) =>
     t.http().post(`/api/v1/internal/${path}`).set('authorization', `Bearer ${INTERNAL_TOKEN}`).send(body)
 
-async function funded(grm = '500') {
+async function funded(coins = '500') {
     const userId = randomUUID()
-    await t.app.get(PaymentsConsumer).handle(paymentEvent(userId, randomUUID(), grm))
+    await t.app.get(PaymentsConsumer).handle(paymentEvent(userId, randomUUID(), coins))
     return userId
 }
 
@@ -58,7 +58,7 @@ describe('credits from payments', () => {
         const token = await identity.token(userId)
         const wallet = await t.http().get('/api/v1/me/wallet').set('authorization', `Bearer ${token}`).expect(200)
         expect(wallet.body).toMatchObject({
-            unit: 'GRM',
+            unit: 'COIN',
             balance: '500',
             exists: true,
         })

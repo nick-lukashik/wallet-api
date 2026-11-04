@@ -20,7 +20,7 @@ export const paymentsQueue = defineQueue('wallet-api.payments', [
 ])
 
 /**
- * A confirmed payment → the GRM pack on the wallet, once: the inbox and the
+ * A confirmed payment → the coin pack on the wallet, once: the inbox and the
  * ref `pack:payment:<paymentId>` both deduplicate, in one transaction.
  */
 @Injectable()
@@ -53,7 +53,7 @@ export class PaymentsConsumer implements OnApplicationBootstrap {
                     ref: `pack:payment:${event.payload.paymentId}`,
                     userId: event.payload.userId,
                     kind: 'credit',
-                    amount: Number(event.payload.grm),
+                    amount: Number(event.payload.coins),
                     source: 'pay',
                     counterAccount: 'issued_purchase',
                     objectRef: `payment:${event.payload.paymentId}`,

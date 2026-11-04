@@ -10,7 +10,7 @@ import { LedgerService } from '../ledger/ledger.service.js'
 import { type AdminCommand, adminCommandSchema, type HistoryQuery, historyQuerySchema } from '../wallet/schemas.js'
 import { WalletService } from '../wallet/wallet.service.js'
 
-/** Operators: wallet.read to look, wallet.adjust to grant or take GRM, with a reason. */
+/** Operators: wallet.read to look, wallet.adjust to grant or take coins, with a reason. */
 @ApiTags('admin')
 @ApiBearerAuth()
 @Controller('admin/wallets')
@@ -44,7 +44,7 @@ export class AdminWalletsController {
     @HttpCode(HttpStatus.OK)
     @Authenticated('wallet.adjust')
     @ApiOperation({
-        summary: 'Credit GRM (promo, compensation); commandId makes a retry safe',
+        summary: 'Credit coins (promo, compensation); commandId makes a retry safe',
     })
     @ApiErrors(400, 401, 403, 409)
     grant(
@@ -62,7 +62,7 @@ export class AdminWalletsController {
     @HttpCode(HttpStatus.OK)
     @Authenticated('wallet.adjust')
     @ApiOperation({
-        summary: 'Take GRM away; 402 when the balance is lower',
+        summary: 'Take coins away; 402 when the balance is lower',
     })
     @ApiErrors(400, 401, 402, 403, 409)
     adjust(

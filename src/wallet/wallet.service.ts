@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { GRM } from '@nick-lukashik/contracts'
+import { COIN } from '@nick-lukashik/contracts'
 import { and, desc, eq, inArray, lt, or } from 'drizzle-orm'
 import { z } from 'zod'
 import { DB } from '../common/database/database.js'
@@ -23,9 +23,9 @@ export class WalletService {
         const [row] = await this.db
             .select()
             .from(wallets)
-            .where(and(eq(wallets.userId, userId), eq(wallets.unit, GRM)))
+            .where(and(eq(wallets.userId, userId), eq(wallets.unit, COIN)))
         return {
-            unit: GRM,
+            unit: COIN,
             balance: String(row?.balance ?? 0),
             state: row?.state ?? 'active',
             exists: Boolean(row),
@@ -37,7 +37,7 @@ export class WalletService {
         const rows = await this.db
             .select()
             .from(wallets)
-            .where(and(inArray(wallets.userId, userIds), eq(wallets.unit, GRM)))
+            .where(and(inArray(wallets.userId, userIds), eq(wallets.unit, COIN)))
         const byUser = new Map(
             rows.map(row => [
                 row.userId,
@@ -48,7 +48,7 @@ export class WalletService {
             const row = byUser.get(userId)
             return {
                 userId,
-                unit: GRM,
+                unit: COIN,
                 balance: String(row?.balance ?? 0),
                 state: row?.state ?? 'active',
                 exists: Boolean(row),
@@ -65,7 +65,7 @@ export class WalletService {
             .where(
                 and(
                     eq(walletTx.userId, userId),
-                    eq(walletTx.unit, GRM),
+                    eq(walletTx.unit, COIN),
                     after
                         ? or(
                               lt(walletTx.createdAt, new Date(after.createdAt)),

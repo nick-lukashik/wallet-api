@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto'
 import { Inject, Injectable } from '@nestjs/common'
-import { GRM, walletCreditedV1 } from '@nick-lukashik/contracts'
+import { COIN, walletCreditedV1 } from '@nick-lukashik/contracts'
 import { and, eq, sql } from 'drizzle-orm'
 import { DB } from '../common/database/database.js'
 import { AppError } from '../common/http/app-error.js'
@@ -33,7 +33,7 @@ export type Posted = {
     txId: string
     ref: string
     userId: string
-    unit: typeof GRM
+    unit: typeof COIN
     kind: Kind
     source: string
     objectRef: string | null
@@ -70,7 +70,7 @@ export class LedgerService {
                 [
                     operation.kind,
                     operation.userId,
-                    GRM,
+                    COIN,
                     operation.amount,
                     operation.source,
                 ].join('|'),
@@ -95,20 +95,20 @@ export class LedgerService {
             .insert(wallets)
             .values({
                 userId: operation.userId,
-                unit: GRM,
+                unit: COIN,
             })
             .onConflictDoNothing()
         const [wallet] = await tx
             .select()
             .from(wallets)
-            .where(and(eq(wallets.userId, operation.userId), eq(wallets.unit, GRM)))
+            .where(and(eq(wallets.userId, operation.userId), eq(wallets.unit, COIN)))
             .for('update')
         if (!wallet) throw new Error('wallet row vanished')
 
         const delta = operation.kind === 'debit' || operation.kind === 'adjust' ? -operation.amount : operation.amount
         if (delta < 0 && operation.kind === 'debit' && wallet.state === 'restricted')
             throw new AppError('LOCKED', 'Wallet restricted')
-        if (wallet.balance + delta < 0) throw new AppError('INSUFFICIENT_FUNDS', 'Not enough GRM')
+        if (wallet.balance + delta < 0) throw new AppError('INSUFFICIENT_FUNDS', 'Not enough coins')
 
         const balanceAfter = wallet.balance + delta
         const version = wallet.version + 1
@@ -119,12 +119,12 @@ export class LedgerService {
                 version,
                 updatedAt: new Date(),
             })
-            .where(and(eq(wallets.userId, operation.userId), eq(wallets.unit, GRM)))
+            .where(and(eq(wallets.userId, operation.userId), eq(wallets.unit, COIN)))
         await tx
             .insert(systemAccounts)
             .values({
                 code: operation.counterAccount,
-                unit: GRM,
+                unit: COIN,
                 balance: -delta,
             })
             .onConflictDoUpdate({
@@ -141,7 +141,7 @@ export class LedgerService {
             .values({
                 id: txId,
                 userId: operation.userId,
-                unit: GRM,
+                unit: COIN,
                 kind: operation.kind,
                 source: operation.source,
                 objectRef: operation.objectRef ?? null,
@@ -166,7 +166,7 @@ export class LedgerService {
                     payload: {
                         txId: row.id,
                         userId: row.userId,
-                        unit: GRM,
+                        unit: COIN,
                         amount: String(delta),
                         balanceAfter: String(balanceAfter),
                         source: operation.source,
@@ -199,7 +199,7 @@ export function toPosted(row: WalletTxRow, replayed: boolean): Posted {
         txId: row.id,
         ref: row.ref,
         userId: row.userId,
-        unit: GRM,
+        unit: COIN,
         kind: row.kind,
         source: row.source,
         objectRef: row.objectRef,

@@ -16,7 +16,7 @@ export class MeWalletController {
 
     @Get()
     @ApiOperation({
-        summary: 'Balance in GRM; "0" and exists: false before the first operation',
+        summary: 'Balance in coins; "0" and exists: false before the first operation',
     })
     @ApiErrors(401)
     wallet(@Caller() caller: AccessClaims) {
