@@ -316,6 +316,18 @@ describe('ledger invariants', () => {
             )
         expect(await refusal(t.db.execute(sql`update wallet_tx set amount = amount + 1`))).toMatch(/append-only/)
         expect(await refusal(t.db.execute(sql`delete from wallet_tx`))).toMatch(/append-only/)
+        expect(await refusal(t.db.execute(sql`truncate wallet_tx`))).toMatch(/append-only/)
+        expect(await refusal(t.db.execute(sql`update wallet_refs set fingerprint = ''`))).toMatch(/append-only/)
+        expect(await refusal(t.db.execute(sql`delete from wallet_refs`))).toMatch(/append-only/)
+        expect(await refusal(t.db.execute(sql`truncate wallet_refs`))).toMatch(/append-only/)
+        expect(
+            await refusal(
+                t.db.execute(sql`
+                    insert into wallet_tx (id, user_id, unit, kind, source, ref, amount, balance_before, balance_after, wallet_version, counter_account)
+                    select gen_random_uuid(), user_id, unit, kind, source, ref, amount, balance_before, balance_after, wallet_version, counter_account
+                    from wallet_tx limit 1`),
+            ),
+        ).toMatch(/wallet_tx_ref_key/)
         const sums = await t.db.execute<{
             total: string
         }>(

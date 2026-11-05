@@ -6,12 +6,12 @@ Built from [`nest-example`](https://github.com/nick-lukashik/nest-example): Post
 
 ## Ledger
 
-| Table             | Holds                                                                                                                               | Guarantee                                                                          |
-| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| `wallets`         | `(user_id, unit)`, `balance`, `state` (`active` / `restricted`), `version`                                                          | `balance >= 0`; changed only by an operation, in its transaction                   |
-| `wallet_tx`       | the player's leg of every operation: kind, source, ref, signed amount, balance before and after, the second account, reason, author | INSERT only (trigger, migration `0001`); `balance_after = balance_before + amount` |
-| `wallet_refs`     | `ref` → the operation and a SHA-256 fingerprint of the request                                                                      | INSERT only: a ref means one operation forever                                     |
-| `system_accounts` | the second leg: `issued_purchase`, `issued_bonus`, `spent`, `adjust`                                                                | with all wallets the sum per unit is zero                                          |
+| Table             | Holds                                                                                                                               | Guarantee                                                                                           |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `wallets`         | `(user_id, unit)`, `balance`, `state` (`active` / `restricted`), `version`                                                          | `balance >= 0`; changed only by an operation, in its transaction                                    |
+| `wallet_tx`       | the player's leg of every operation: kind, source, ref, signed amount, balance before and after, the second account, reason, author | INSERT only (trigger, migration `0001`); one row per ref; `balance_after = balance_before + amount` |
+| `wallet_refs`     | `ref` → the operation and a SHA-256 fingerprint of the request                                                                      | INSERT only: a ref means one operation forever                                                      |
+| `system_accounts` | the second leg: `issued_purchase`, `issued_bonus`, `spent`, `adjust`                                                                | with all wallets the sum per unit is zero                                                           |
 
 How one operation runs, in one transaction:
 1. Take the ref.

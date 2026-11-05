@@ -1,5 +1,16 @@
 import { sql } from 'drizzle-orm'
-import { bigint, check, index, integer, pgTable, primaryKey, text, timestamp, uuid } from 'drizzle-orm/pg-core'
+import {
+    bigint,
+    check,
+    index,
+    integer,
+    pgTable,
+    primaryKey,
+    text,
+    timestamp,
+    uniqueIndex,
+    uuid,
+} from 'drizzle-orm/pg-core'
 
 // Platform tables every service with events carries: outbox and inbox.
 export { inbox, outbox } from '../common/messaging/outbox.schema.js'
@@ -80,12 +91,18 @@ export const walletTx = pgTable(
     },
     t => [
         index('wallet_tx_user_idx').on(t.userId, t.unit, t.createdAt.desc(), t.id.desc()),
+        // A second line behind wallet_refs: the same ref never makes two ledger rows.
+        uniqueIndex('wallet_tx_ref_key').on(t.ref),
         check('wallet_tx_chain', sql`${t.balanceAfter} = ${t.balanceBefore} + ${t.amount}`),
         check('wallet_tx_amount_not_zero', sql`${t.amount} <> 0`),
     ],
 )
 
-/** Idempotency: a ref is taken by one operation with one request fingerprint, forever. */
+/**
+ * Idempotency: a ref is taken by one operation with one request fingerprint, forever.
+ * INSERT only, like the ledger (triggers of migrations 0001 and 0002): without its refs
+ * the same operation would post again.
+ */
 export const walletRefs = pgTable('wallet_refs', {
     ref: text('ref').primaryKey(),
     operation: text('operation').notNull(),
