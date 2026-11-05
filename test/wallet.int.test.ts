@@ -131,6 +131,7 @@ describe('internal debits', () => {
             userId,
             amount: '120',
             source: 'roulette',
+            objectRef: 'round:1',
         }).expect(200)
         expect(again.body).toMatchObject({
             txId: first.body.txId,
@@ -140,6 +141,21 @@ describe('internal debits', () => {
             ref,
             userId,
             amount: '121',
+            source: 'roulette',
+            objectRef: 'round:1',
+        }).expect(409)
+        // The same ref for another round: the second stake is not taken, and the caller must know.
+        await internal('debit', {
+            ref,
+            userId,
+            amount: '120',
+            source: 'roulette',
+            objectRef: 'round:2',
+        }).expect(409)
+        await internal('debit', {
+            ref,
+            userId,
+            amount: '120',
             source: 'roulette',
         }).expect(409)
         const tooMuch = await internal('debit', {
