@@ -58,4 +58,5 @@ pnpm env:local
 pnpm db:migrate
 pnpm dev           # http://localhost:4300
 pnpm verify
+pnpm messaging:replay-dlq wallet-api.payments --limit 100   # dead letters back to their queue, after the cause is fixed
 ```
