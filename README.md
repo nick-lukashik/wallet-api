@@ -1,6 +1,6 @@
 # wallet-api
 
-The coin wallet of the nick-lukashik platform. Coins (unit `COIN`) are the one internal unit: whole numbers, no cash-out, no transfers between people. They are bought through pay-api and spent by games through the internal API.
+The coin wallet of the nick-lukashik platform. Coins (unit `COIN`) are the one internal unit: whole numbers, no cash-out, no transfers between people. They are bought through pay-api and spent by games through the internal API. pay-api is not live yet: it is not deployed and payments are off in prod, so nobody can buy coins today.
 
 Built from [`nest-example`](https://github.com/nick-lukashik/nest-example): Postgres, RabbitMQ outbox and inbox. Design: [`.github/docs/identity.md`](https://github.com/nick-lukashik/.github/blob/master/docs/identity.md). The contract is ported from the previous platform's `wallet-backend`. No public route.
 
