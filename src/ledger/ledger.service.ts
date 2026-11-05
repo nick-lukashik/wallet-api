@@ -100,7 +100,7 @@ export class LedgerService {
             .returning({
                 ref: walletRefs.ref,
             })
-        if (!taken) return this.replay(tx, operation.ref, fingerprint)
+        if (!taken) return this.replay(tx, operation, fingerprint)
 
         await tx
             .insert(wallets)
@@ -190,17 +190,21 @@ export class LedgerService {
         return toPosted(row, false)
     }
 
-    private async replay(tx: Tx, ref: string, fingerprint: string): Promise<Posted> {
-        const [existing] = await tx.select().from(walletRefs).where(eq(walletRefs.ref, ref))
-        if (!existing || existing.fingerprint !== fingerprint)
-            throw new AppError('CONFLICT', 'The ref was used for a different operation', [
+    private async replay(tx: Tx, operation: Operation, fingerprint: string): Promise<Posted> {
+        const conflict = () =>
+            new AppError('CONFLICT', 'The ref was used for a different operation', [
                 {
                     path: 'ref',
                     message: 'conflict',
                 },
             ])
+        const [existing] = await tx.select().from(walletRefs).where(eq(walletRefs.ref, operation.ref))
+        if (!existing || existing.fingerprint !== fingerprint) throw conflict()
         const [row] = await tx.select().from(walletTx).where(eq(walletTx.id, existing.txId))
         if (!row) throw new Error('ref without its ledger row')
+        // Not in the fingerprint, so that refs already taken keep their stored value:
+        // the same ref for another round is a caller's bug, not a repeat of the stake.
+        if (row.objectRef !== (operation.objectRef ?? null)) throw conflict()
         return toPosted(row, true)
     }
 }
