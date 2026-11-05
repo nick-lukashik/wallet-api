@@ -195,7 +195,12 @@ describe('the broker definitions', () => {
         await publishAsPayApi(broker.url, event)
         const app = await startWallet(broker.url)
 
-        await expect.poll(() => refs(app, event)).toHaveLength(1)
+        // A fresh broker and a fresh service on a busy CI runner: the default wait ran out there.
+        await expect
+            .poll(() => refs(app, event), {
+                timeout: 25_000,
+            })
+            .toHaveLength(1)
         expect(await app.metric('messaging_consumer_restarts_total')).toBe(0)
     }, 120_000)
 
