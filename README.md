@@ -14,6 +14,7 @@ Built from [`nest-example`](https://github.com/nick-lukashik/nest-example): Post
 | `system_accounts` | the second leg: `issued_purchase`, `issued_bonus`, `spent`, `adjust`                                                                | with all wallets the sum per unit is zero                                                           |
 
 How one operation runs, in one transaction:
+
 1. Take the ref.
 2. Lock the wallet row.
 3. Check the state and the balance.
@@ -21,6 +22,7 @@ How one operation runs, in one transaction:
 5. Put the event in the outbox, for a credit.
 
 When the ref is already taken:
+
 - the same request gets the stored result (`replayed: true`);
 - a different one gets 409.
 
@@ -45,6 +47,7 @@ A refusal (402 `INSUFFICIENT_FUNDS`, 423 `LOCKED`) rolls back, so the same ref c
 | published                              | `wallet.credit.posted.v1`  | Every credit (notifications-api adds an inbox entry)                             |
 
 Not yet:
+
 - the reconciliation pass (balance drift, chain breaks, zero sum);
 - rollback of a debit;
 - restricting wallets on `id` account events.
